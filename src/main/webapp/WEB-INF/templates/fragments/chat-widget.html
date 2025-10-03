@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="chat-widget" th:if="${loggedInUser != null and !loggedInUser.isAdmin() and chatAdminUser != null}">
+  <style>
+    :root {
+      --widget-bg-color: rgba(255, 255, 255, 0.85);
+      --widget-body-bg-color: rgba(247, 249, 252, 0.7);
+      --widget-sent-bg:linear-gradient(135deg,#1e90ff 0%,#007bff 100%);
+      --widget-received-bg: #e9eef2;
+      --widget-border-color: rgba(227, 230, 234, 0.7);
+      --widget-primary-color:#007bff;
+      --widget-text-color:#1a1a1a;
+      --widget-radius-lg:16px;
+      --widget-radius-md:12px;
+    }
+
+    .chat-widget-window {
+      position:absolute;
+      bottom:90px;
+      right:0;
+      width:370px;
+      height:550px;
+      background-color:var(--widget-bg-color);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius:var(--widget-radius-lg);
+      box-shadow:0 8px 30px rgba(0,0,0,0.15);
+      display:none;
+      flex-direction:column;
+      overflow:hidden;
+      transform-origin:bottom right;
+      animation:scale-up 0.3s cubic-bezier(0.165,0.84,0.44,1) forwards;
+    }
+
+    .chat-widget-container {
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      z-index:1050;
+      font-family:'Be Vietnam Pro',sans-serif;
+    }
+
+    .chat-widget-bubble {
+      width:60px;
+      height:60px;
+      background-image:var(--widget-sent-bg);
+      border-radius:var(--widget-radius-lg);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:white;
+      font-size:28px;
+      cursor:pointer;
+      box-shadow:0 4px 15px rgba(0,123,255,0.4);
+      transition:transform 0.2s ease,box-shadow 0.2s ease,border-radius 0.2s ease;
+      position: relative;
+    }
+
+    .chat-widget-bubble .notification-dot {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 12px;
+      height: 12px;
+      background-color: #ef4444;
+      border-radius: 50%;
+      border: 2px solid white;
+      display: none;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    .chat-widget-bubble:hover {
+      transform:scale(1.1);
+      box-shadow:0 6px 20px rgba(0,123,255,0.5);
+    }
+
+    .chat-widget-window.is-open ~ .chat-widget-bubble {
+      border-radius:50%;
+    }
+
+    @keyframes scale-up {
+      from {
+        transform:scale(0.5);
+        opacity:0;
+      }
+      to {
+        transform:scale(1);
+        opacity:1;
+      }
+    }
+
+    .chat-widget-window.is-open {
+      display:flex;
+    }
+
+    .chat-widget-header {
+      padding:1rem;
+      background-color: transparent;
+      color:var(--widget-text-color);
+      flex-shrink:0;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid var(--widget-border-color);
+    }
+
+    .chat-widget-header .contact-info {
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .chat-widget-header h5 {
+      margin:0;
+      font-size:1.1rem;
+      font-weight:700;
+    }
+
+    .chat-widget-header .close-btn {
+      background:none;
+      border:none;
+      color:#aaa;
+      font-size:24px;
+      line-height:1;
+      cursor:pointer;
+      padding:0 .5rem;
+    }
+
+    .chat-widget-body {
+      flex-grow:1;
+      padding:1.5rem;
+      overflow-y:auto;
+      background-color:var(--widget-body-bg-color);
+      display:flex;
+      flex-direction:column;
+    }
+
+    .chat-widget-footer {
+      padding:1rem;
+      border-top:1px solid var(--widget-border-color);
+      background-color: transparent;
+      flex-shrink:0;
+    }
+
+    .chat-widget-input-wrapper {
+      display:flex;
+      align-items:center;
+      gap:0.75rem;
+      background-color:#f1f3f5;
+      border-radius:var(--widget-radius-lg);
+      padding:0.5rem;
+    }
+
+    .chat-widget-input-wrapper input {
+      border:none;
+      background:transparent;
+      flex-grow:1;
+      padding:0.5rem;
+      font-size:0.95rem;
+      outline:none;
+      box-shadow:none !important;
+    }
+
+    .chat-widget-input-wrapper .btn {
+      border-radius:var(--widget-radius-md);
+      width:40px;
+      height:40px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.1rem;
+    }
+
+    .chat-widget-input-wrapper .btn-primary {
+      background-image:var(--widget-sent-bg);
+      border:none;
+    }
+
+    .widget-avatar {
+      width:40px;
+      height:40px;
+      border-radius:var(--widget-radius-md);
+      background-color:#ccc;
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      flex-shrink:0;
+      background-size:cover;
+      background-position:center;
+    }
+
+    .widget-message-group {
+      display:flex;
+      margin-bottom:1.25rem;
+      max-width:85%;
+      align-items:flex-start;
+      gap:10px;
+      position:relative;
+      animation:slideInUp 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+
+    .widget-message-group.sent {
+      align-self:flex-end;
+      flex-direction:row-reverse;
+    }
+
+    .widget-message-group.received {
+      align-self:flex-start;
+    }
+
+    .widget-message-bubbles {
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+
+    .widget-message-bubble {
+      padding:0.75rem 1rem;
+      border-radius:var(--widget-radius-lg);
+      word-wrap:break-word;
+      font-size:0.95rem;
+      line-height:1.5;
+    }
+
+    .widget-message-group.sent .widget-message-bubble {
+      background-image:var(--widget-sent-bg);
+      color:white;
+      border-bottom-right-radius:5px;
+    }
+
+    .widget-message-group.received .widget-message-bubble {
+      background-color:var(--widget-received-bg);
+      color:var(--widget-text-color);
+      border-bottom-left-radius:5px;
+    }
+
+    .widget-message-bubble.retracted {
+      background:transparent !important;
+      border:1px solid var(--widget-border-color);
+      color:#212529;
+      font-style:italic;
+    }
+
+    .widget-message-bubble img.chat-image-thumbnail {
+      max-width:220px;
+      border-radius:var(--widget-radius-md);
+      cursor:pointer;
+    }
+
+    .widget-message-bubble.image-message {
+      padding:5px;
+      background:transparent !important;
+    }
+
+    .widget-message-time {
+      font-size:0.75rem;
+      color:#999;
+      margin-top:5px;
+      padding:0 10px;
+      display:none;
+    }
+
+    .widget-message-group.sent .widget-message-time {
+      align-self:flex-end;
+    }
+
+    .widget-message-group.received .widget-message-time {
+      align-self:flex-start;
+    }
+
+    .widget-message-group .widget-message-bubbles .widget-message-bubble:last-child + .widget-message-time {
+      display:block;
+    }
+
+    .widget-message-group.is-grouped {
+      margin-top:-1.0rem;
+    }
+
+    .widget-message-group.is-grouped .widget-avatar {
+      visibility:hidden;
+    }
+
+    .widget-retract-btn {
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      background-color:rgba(0,0,0,0.4);
+      color:white;
+      border:none;
+      border-radius:50%;
+      width:24px;
+      height:24px;
+      font-size:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      opacity:0;
+      visibility:hidden;
+      transition:opacity 0.2s,visibility 0.2s;
+    }
+
+    .widget-message-group.sent:hover .widget-retract-btn {
+      opacity:1;
+      visibility:visible;
+    }
+
+    .widget-message-group.sent .widget-retract-btn {
+      left:-32px;
+    }
+
+    .image-modal-overlay {
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background-color:rgba(0,0,0,0.85);
+      display:none;
+      justify-content:center;
+      align-items:center;
+      z-index:1060;
+      padding:20px;
+    }
+
+    .image-modal-content {
+      max-width:90%;
+      max-height:90%;
+      object-fit:contain;
+    }
+
+    .close-modal-btn {
+      position:absolute;
+      top:20px;
+      right:35px;
+      color:#fff;
+      font-size:40px;
+      font-weight:bold;
+      cursor:pointer;
+      transition:color 0.3s;
+    }
+
+    .close-modal-btn:hover {
+      color:#bbb;
+    }
+  </style>
+
+  <div class="chat-widget-container">
+    <div class="chat-widget-window" id="chat-widget-window">
+      <div class="chat-widget-header">
+        <div class="contact-info">
+          <div class="widget-avatar" id="widget-admin-avatar"></div>
+          <h5>Trò chuyện với Admin</h5>
+        </div>
+        <button class="close-btn" id="close-widget-btn">×</button>
+      </div>
+      <div class="chat-widget-body" id="chat-widget-messages-area">
+        <p class="text-center text-muted p-3">Mở để kết nối...</p>
+      </div>
+      <div class="chat-widget-footer">
+        <form id="widget-message-form" class="chat-widget-input-wrapper">
+          <input type="file" id="widget-image-input" class="d-none" accept="image/*">
+          <button type="button" id="widget-attach-button" class="btn btn-light"><i class="fas fa-paperclip"></i></button>
+          <input type="text" id="widget-message-input" class="form-control" placeholder="Nhập tin nhắn..." autocomplete="off">
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </div>
+    <div class="chat-widget-bubble" id="chat-widget-bubble">
+      <i class="fa-solid fa-comments"></i>
+      <span class="notification-dot" id="widget-notification-dot"></span>
+    </div>
+  </div>
+
+  <div id="image-modal-overlay" class="image-modal-overlay">
+    <span id="close-modal-btn" class="close-modal-btn">×</span>
+    <img id="modal-image-content" class="image-modal-content">
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+  <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentUser = /*[[${loggedInUser}]]*/ null;
+      const adminUser = /*[[${chatAdminUser}]]*/ null;
+      if (!currentUser || !adminUser) return;
+
+      const widgetBubble = document.getElementById('chat-widget-bubble');
+      const widgetWindow = document.getElementById('chat-widget-window');
+      const notificationDot = document.getElementById('widget-notification-dot');
+      const closeWidgetBtn = document.getElementById('close-widget-btn');
+      const chatMessagesArea = document.getElementById('chat-widget-messages-area');
+      const messageForm = document.getElementById('widget-message-form');
+      const messageInput = document.getElementById('widget-message-input');
+      const attachButton = document.getElementById('widget-attach-button');
+      const imageInput = document.getElementById('widget-image-input');
+      const adminAvatarContainer = document.getElementById('widget-admin-avatar');
+      const imageModalOverlay = document.getElementById('image-modal-overlay');
+      const modalImageContent = document.getElementById('modal-image-content');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+
+      let stompClient = null;
+      let hasLoadedHistory = false;
+      let isWindowOpen = false;
+
+      const createAvatarColor = (username) => {
+        const colors = ['#007bff', '#6610f2', '#6f42c1', '#d63384', '#dc3545', '#fd7e14', '#ffc107', '#198754', '#20c997', '#0dcaf0'];
+        const charCodeSum = username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        return colors[charCodeSum % colors.length];
+      };
+
+      const connect = () => {
+        if (stompClient && stompClient.active) {
+          console.log('STOMP client is already active.');
+          if (isWindowOpen && !hasLoadedHistory) {
+            loadChatHistory();
+          }
+          return;
+        }
+
+        console.log('Connecting STOMP client...');
+        const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws';
+        stompClient = new StompJs.Client({
+          brokerURL: wsUrl,
+          reconnectDelay: 5000,
+          heartbeatIncoming: 10000,
+          heartbeatOutgoing: 10000
+        });
+
+        stompClient.onConnect = (frame) => {
+          console.log('STOMP client connected.');
+          stompClient.subscribe('/user/' + currentUser.username + '/queue/messages', onMessageReceived);
+          stompClient.subscribe('/user/' + currentUser.username + '/queue/notifications', onNotificationReceived);
+          if (isWindowOpen && !hasLoadedHistory) {
+            loadChatHistory();
+          }
+        };
+
+        stompClient.onStompError = (frame) => {
+          console.error('Broker reported error: ' + frame.headers['message'], 'Additional details: ' + frame.body);
+        };
+
+        stompClient.activate();
+      };
+
+      const onNotificationReceived = (payload) => {
+        const notification = JSON.parse(payload.body);
+        console.log('[Notification Received]', notification);
+        if (notification.recipientId === currentUser.id && !isWindowOpen) {
+          console.log('Displaying notification dot.');
+          notificationDot.style.display = 'block';
+        }
+      };
+
+      const onMessageReceived = (payload) => {
+        const message = JSON.parse(payload.body);
+        console.log('[Message Received]', message);
+
+        if (!isWindowOpen) {
+          console.log('Window is not open, showing notification dot.');
+          notificationDot.style.display = 'block';
+          return;
+        }
+
+        const existingMessageElement = document.getElementById('widget-message-group-' + message.id);
+        if (existingMessageElement) {
+          updateMessage(message, existingMessageElement);
+          return;
+        }
+
+        const lastMessageElement = chatMessagesArea.lastElementChild;
+        const prevMsg = lastMessageElement ? { senderId: lastMessageElement.dataset.senderId } : null;
+        displayMessage(message, prevMsg);
+        scrollToBottom('smooth');
+      };
+
+      const loadChatHistory = async () => {
+        console.log('Loading chat history...');
+        try {
+          const response = await fetch(`/chat/history/${adminUser.id}`);
+          if (!response.ok) throw new Error('Failed to fetch history');
+          const messages = await response.json();
+          chatMessagesArea.innerHTML = '';
+          messages.forEach((msg, index) => {
+            const prevMsg = index > 0 ? messages[index - 1] : null;
+            displayMessage(msg, prevMsg);
+          });
+          scrollToBottom('instant');
+          hasLoadedHistory = true;
+          console.log('Chat history loaded successfully.');
+        } catch (e) {
+          console.error('Error loading chat history:', e);
+          chatMessagesArea.innerHTML = '<p class="text-center text-danger">Không thể tải lịch sử trò chuyện.</p>';
+        }
+      };
+
+      const sendMessage = (type, content) => {
+        if (content && stompClient && stompClient.active) {
+          const chatMessage = {
+            senderId: currentUser.id,
+            senderUsername: currentUser.username,
+            recipientId: adminUser.id,
+            recipientUsername: adminUser.username,
+            content: content,
+            messageType: type
+          };
+          stompClient.publish({
+            destination: '/app/chat.sendMessage',
+            body: JSON.stringify(chatMessage)
+          });
+          console.log('Sent message:', chatMessage);
+        } else {
+          console.error('Cannot send message, STOMP client not active or content is empty.');
+        }
+      };
+
+      const updateMessage = (message, element) => {
+        if (message.messageType === 'RETRACTED') {
+          const bubble = element.querySelector('.widget-message-bubble');
+          bubble.textContent = message.content;
+          bubble.className = 'widget-message-bubble retracted';
+          const retractBtn = element.querySelector('.widget-retract-btn');
+          if (retractBtn) retractBtn.remove();
+        }
+      };
+
+      const displayMessage = (message, prevMessage) => {
+        const isSent = message.senderId === currentUser.id;
+        const isGrouped = prevMessage && prevMessage.senderId === message.senderId;
+
+        const messageGroup = document.createElement('div');
+        messageGroup.id = `widget-message-group-${message.id}`;
+        messageGroup.className = `widget-message-group ${isSent ? 'sent' : 'received'} ${isGrouped ? 'is-grouped' : ''}`;
+        messageGroup.dataset.senderId = message.senderId;
+
+        const avatar = document.createElement('div');
+        avatar.className = 'widget-avatar';
+        const avatarOwner = isSent ? currentUser : adminUser;
+        avatar.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${avatarOwner.username}&background=${createAvatarColor(avatarOwner.username).substring(1)}&color=fff&bold=true')`;
+
+        const bubblesContainer = document.createElement('div');
+        bubblesContainer.className = 'widget-message-bubbles';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'widget-message-bubble';
+        if (message.messageType === 'IMAGE') {
+          bubble.classList.add('image-message');
+          bubble.innerHTML = `<img src="${message.content}" alt="Ảnh đã gửi" class="chat-image-thumbnail">`;
+        } else if (message.messageType === 'RETRACTED') {
+          bubble.classList.add('retracted');
+          bubble.textContent = message.content;
+        } else {
+          bubble.textContent = message.content;
+        }
+        bubblesContainer.appendChild(bubble);
+
+        const time = document.createElement('div');
+        time.className = 'widget-message-time';
+        time.textContent = new Date(message.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        bubblesContainer.appendChild(time);
+
+        messageGroup.appendChild(avatar);
+        messageGroup.appendChild(bubblesContainer);
+
+        if (isSent && message.messageType !== 'RETRACTED') {
+          const retractBtn = document.createElement('button');
+          retractBtn.className = 'widget-retract-btn';
+          retractBtn.title = 'Gỡ tin nhắn';
+          retractBtn.dataset.messageId = message.id;
+          retractBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+          messageGroup.appendChild(retractBtn);
+        }
+
+        chatMessagesArea.appendChild(messageGroup);
+      };
+
+      const uploadImage = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+          const response = await fetch('/upload/image/chat', { method: 'POST', body: formData });
+          if (!response.ok) throw new Error('Upload failed');
+          const result = await response.json();
+          sendMessage('IMAGE', result.url);
+        } catch (error) {
+          alert('Tải ảnh lên thất bại.');
+        }
+        event.target.value = '';
+      };
+
+      const handleWidgetChatAreaClick = (event) => {
+        const retractButton = event.target.closest('.widget-retract-btn');
+        if (retractButton) {
+          const messageId = retractButton.dataset.messageId;
+          if (confirm('Bạn có chắc muốn gỡ tin nhắn này?')) {
+            fetch(`/chat/messages/${messageId}`, { method: 'DELETE' })
+                    .catch(err => console.error("Error retracting message:", err));
+          }
+        }
+      };
+
+      const scrollToBottom = (behavior = 'smooth') => {
+        if (chatMessagesArea) {
+          chatMessagesArea.scrollTo({ top: chatMessagesArea.scrollHeight, behavior: behavior });
+        }
+      };
+
+      const openImageModal = (src) => {
+        modalImageContent.src = src;
+        imageModalOverlay.style.display = 'flex';
+      };
+
+      const closeImageModal = () => {
+        imageModalOverlay.style.display = 'none';
+        modalImageContent.src = '';
+      };
+
+      widgetBubble.addEventListener('click', () => {
+        isWindowOpen = true;
+        widgetWindow.classList.add('is-open');
+        notificationDot.style.display = 'none';
+        connect();
+      });
+
+      closeWidgetBtn.addEventListener('click', () => {
+        isWindowOpen = false;
+        widgetWindow.classList.remove('is-open');
+      });
+
+      messageForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const messageContent = messageInput.value.trim();
+        if (messageContent) {
+          sendMessage('TEXT', messageContent);
+          messageInput.value = '';
+        }
+      });
+
+      attachButton.addEventListener('click', () => imageInput.click());
+      imageInput.addEventListener('change', (event) => uploadImage(event));
+
+      chatMessagesArea.addEventListener('click', (event) => {
+        handleWidgetChatAreaClick(event);
+        if (event.target && event.target.classList.contains('chat-image-thumbnail')) {
+          openImageModal(event.target.src);
+        }
+      });
+
+      closeModalBtn.addEventListener('click', closeImageModal);
+      imageModalOverlay.addEventListener('click', (event) => {
+        if (event.target === imageModalOverlay) closeImageModal();
+      });
+
+      adminAvatarContainer.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${adminUser.username}&background=${createAvatarColor(adminUser.username).substring(1)}&color=fff&bold=true')`;
+
+      connect();
+    });
+  </script>
+</div>
+</body>
+</html>

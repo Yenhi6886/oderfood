@@ -1,0 +1,794 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="vi" xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>Quản lý Tin nhắn</title>-->
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">-->
+<!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>-->
+<!--    <link rel="stylesheet" th:href="@{/assets/css/style.css}"/>-->
+<!--    <link rel="preconnect" href="https://fonts.googleapis.com">-->
+<!--    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>-->
+<!--    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&family=Poppins:wght@700&display=swap" rel="stylesheet">-->
+<!--    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">-->
+
+<!--    <style>-->
+<!--        :root {-->
+<!--            &#45;&#45;chat-bg-color:#f7f9fc;-->
+<!--            &#45;&#45;chat-text-color:#1a1a1a;-->
+<!--            &#45;&#45;chat-sent-bg:#0084FF;-->
+<!--            &#45;&#45;chat-received-bg:#e9eef2;-->
+<!--            &#45;&#45;chat-border-color:#e3e6ea;-->
+<!--            &#45;&#45;chat-radius-lg:16px;-->
+<!--            &#45;&#45;chat-radius-md:12px;-->
+<!--        }-->
+
+<!--        body {-->
+<!--            font-family:'Be Vietnam Pro',sans-serif;-->
+<!--            background-color:#f8f9fa;-->
+<!--        }-->
+
+<!--        .chat-container {-->
+<!--            height:calc(100vh - 56px - 2rem);-->
+<!--            display:flex;-->
+<!--            position:relative;-->
+<!--            border:none;-->
+<!--            border-radius:var(&#45;&#45;chat-radius-lg);-->
+<!--            overflow:hidden;-->
+<!--            box-shadow:0 8px 30px rgba(0,0,0,0.1);-->
+<!--        }-->
+
+<!--        .conversation-list {-->
+<!--            width:320px;-->
+<!--            border-right:1px solid var(&#45;&#45;chat-border-color);-->
+<!--            display:flex;-->
+<!--            flex-direction:column;-->
+<!--            background-color:#ffffff;-->
+<!--            flex-shrink:0;-->
+<!--        }-->
+
+<!--        .conversation-list-header {-->
+<!--            padding:1rem 1.25rem;-->
+<!--            border-bottom:1px solid var(&#45;&#45;chat-border-color);-->
+<!--            flex-shrink:0;-->
+<!--            font-weight:700;-->
+<!--        }-->
+
+<!--        .conversation-list-body {-->
+<!--            overflow-y:auto;-->
+<!--            flex-grow:1;-->
+<!--        }-->
+
+<!--        .conversation-item {-->
+<!--            display:flex;-->
+<!--            align-items:center;-->
+<!--            gap:12px;-->
+<!--            padding:0.8rem 1.25rem;-->
+<!--            cursor:pointer;-->
+<!--            border-bottom:1px solid var(&#45;&#45;chat-border-color);-->
+<!--            transition:background-color 0.2s;-->
+<!--            position: relative;-->
+<!--        }-->
+
+<!--        .conversation-item .notification-dot {-->
+<!--            position: absolute;-->
+<!--            top: 50%;-->
+<!--            right: 1.25rem;-->
+<!--            transform: translateY(-50%);-->
+<!--            width: 10px;-->
+<!--            height: 10px;-->
+<!--            background-color: var(&#45;&#45;chat-sent-bg);-->
+<!--            border-radius: 50%;-->
+<!--            display: none;-->
+<!--        }-->
+
+<!--        .conversation-item:last-child {-->
+<!--            border-bottom:none;-->
+<!--        }-->
+
+<!--        .conversation-item:hover {-->
+<!--            background-color:#f1f3f5;-->
+<!--        }-->
+
+<!--        .conversation-item.active {-->
+<!--            background-color:var(&#45;&#45;chat-sent-bg);-->
+<!--            color:white;-->
+<!--        }-->
+
+<!--        .conversation-item.active .avatar {-->
+<!--            border-color:white;-->
+<!--        }-->
+
+<!--        .conversation-item.active h6 {-->
+<!--            color:white;-->
+<!--        }-->
+
+<!--        .chat-area {-->
+<!--            flex-grow:1;-->
+<!--            display:flex;-->
+<!--            flex-direction:column;-->
+<!--            background-color:var(&#45;&#45;chat-bg-color);-->
+<!--        }-->
+
+<!--        .chat-header {-->
+<!--            padding:0.75rem 1.25rem;-->
+<!--            border-bottom:1px solid var(&#45;&#45;chat-border-color);-->
+<!--            background-color:#ffffff;-->
+<!--            flex-shrink:0;-->
+<!--            display:flex;-->
+<!--            align-items:center;-->
+<!--            gap:12px;-->
+<!--        }-->
+
+<!--        .chat-header .back-button {-->
+<!--            display:none;-->
+<!--        }-->
+
+<!--        .chat-header h6 {-->
+<!--            margin:0;-->
+<!--            font-weight:700;-->
+<!--        }-->
+
+<!--        .chat-body {-->
+<!--            flex-grow:1;-->
+<!--            padding:1.5rem;-->
+<!--            overflow-y:auto;-->
+<!--            display:flex;-->
+<!--            flex-direction:column;-->
+<!--        }-->
+
+<!--        .chat-footer {-->
+<!--            padding:1rem 1.25rem;-->
+<!--            border-top:1px solid var(&#45;&#45;chat-border-color);-->
+<!--            background-color:#ffffff;-->
+<!--            flex-shrink:0;-->
+<!--        }-->
+
+<!--        .chat-input-wrapper {-->
+<!--            display:flex;-->
+<!--            align-items:center;-->
+<!--            gap:0.75rem;-->
+<!--            background-color:#f1f3f5;-->
+<!--            border-radius:var(&#45;&#45;chat-radius-lg);-->
+<!--            padding:0.5rem;-->
+<!--        }-->
+
+<!--        .chat-input-wrapper input {-->
+<!--            border:none;-->
+<!--            background:transparent;-->
+<!--            flex-grow:1;-->
+<!--            padding:0.5rem;-->
+<!--            font-size:0.95rem;-->
+<!--            outline:none;-->
+<!--            box-shadow:none !important;-->
+<!--        }-->
+
+<!--        .chat-input-wrapper .btn {-->
+<!--            border-radius:var(&#45;&#45;chat-radius-md);-->
+<!--            width:40px;-->
+<!--            height:40px;-->
+<!--            display:flex;-->
+<!--            align-items:center;-->
+<!--            justify-content:center;-->
+<!--            font-size:1.1rem;-->
+<!--        }-->
+
+<!--        .chat-input-wrapper .btn-primary {-->
+<!--            background-color:var(&#45;&#45;chat-sent-bg);-->
+<!--            border-color:var(&#45;&#45;chat-sent-bg);-->
+<!--        }-->
+
+<!--        .avatar {-->
+<!--            width:40px;-->
+<!--            height:40px;-->
+<!--            border-radius:var(&#45;&#45;chat-radius-md);-->
+<!--            background-color:#ccc;-->
+<!--            color:white;-->
+<!--            display:flex;-->
+<!--            align-items:center;-->
+<!--            justify-content:center;-->
+<!--            font-weight:700;-->
+<!--            flex-shrink:0;-->
+<!--            background-size:cover;-->
+<!--            background-position:center;-->
+<!--        }-->
+
+<!--        .message-group {-->
+<!--            display:flex;-->
+<!--            margin-bottom:1.25rem;-->
+<!--            max-width:80%;-->
+<!--            align-items:flex-start;-->
+<!--            gap:10px;-->
+<!--            position:relative;-->
+<!--            animation:slideInUp 0.4s cubic-bezier(0.25,0.46,0.45,0.94);-->
+<!--        }-->
+
+<!--        @keyframes slideInUp {-->
+<!--            from {-->
+<!--                opacity:0;-->
+<!--                transform:translateY(20px);-->
+<!--            }-->
+<!--            to {-->
+<!--                opacity:1;-->
+<!--                transform:translateY(0);-->
+<!--            }-->
+<!--        }-->
+
+<!--        .message-group.sent {-->
+<!--            align-self:flex-end;-->
+<!--            flex-direction:row-reverse;-->
+<!--        }-->
+
+<!--        .message-group.received {-->
+<!--            align-self:flex-start;-->
+<!--        }-->
+
+<!--        .message-bubbles {-->
+<!--            display:flex;-->
+<!--            flex-direction:column;-->
+<!--            gap:2px;-->
+<!--        }-->
+
+<!--        .message-bubble {-->
+<!--            padding:0.75rem 1rem;-->
+<!--            border-radius:var(&#45;&#45;chat-radius-lg);-->
+<!--            word-wrap:break-word;-->
+<!--            font-size:0.95rem;-->
+<!--            line-height:1.5;-->
+<!--        }-->
+
+<!--        .message-group.sent .message-bubble {-->
+<!--            background-color:var(&#45;&#45;chat-sent-bg);-->
+<!--            color:white;-->
+<!--            border-bottom-right-radius:5px;-->
+<!--        }-->
+
+<!--        .message-group.received .message-bubble {-->
+<!--            background-color:var(&#45;&#45;chat-received-bg);-->
+<!--            color:var(&#45;&#45;chat-text-color);-->
+<!--            border-bottom-left-radius:5px;-->
+<!--        }-->
+
+<!--        .message-bubble.retracted {-->
+<!--            background-color:transparent !important;-->
+<!--            border:1px solid var(&#45;&#45;chat-border-color);-->
+<!--            color:#212529;-->
+<!--            font-style:italic;-->
+<!--        }-->
+
+<!--        .message-bubble img.chat-image-thumbnail {-->
+<!--            max-width:250px;-->
+<!--            border-radius:var(&#45;&#45;chat-radius-md);-->
+<!--            cursor:pointer;-->
+<!--            object-fit:cover;-->
+<!--        }-->
+
+<!--        .message-bubble.image-message {-->
+<!--            padding:5px;-->
+<!--            background:transparent !important;-->
+<!--        }-->
+
+<!--        .message-time {-->
+<!--            font-size:0.75rem;-->
+<!--            color:#999;-->
+<!--            margin-top:5px;-->
+<!--            padding:0 10px;-->
+<!--            display:none;-->
+<!--        }-->
+
+<!--        .message-group.sent .message-time {-->
+<!--            align-self:flex-end;-->
+<!--        }-->
+
+<!--        .message-group.received .message-time {-->
+<!--            align-self:flex-start;-->
+<!--        }-->
+
+<!--        .message-group .message-bubbles .message-bubble:last-child + .message-time {-->
+<!--            display:block;-->
+<!--        }-->
+
+<!--        .message-group.is-grouped {-->
+<!--            margin-top:-1.0rem;-->
+<!--        }-->
+
+<!--        .message-group.is-grouped .avatar {-->
+<!--            visibility:hidden;-->
+<!--        }-->
+
+<!--        .retract-btn {-->
+<!--            background-color:rgba(0,0,0,0.4);-->
+<!--            color:white;-->
+<!--            border:none;-->
+<!--            border-radius:50%;-->
+<!--            width:24px;-->
+<!--            height:24px;-->
+<!--            font-size:12px;-->
+<!--            display:flex;-->
+<!--            align-items:center;-->
+<!--            justify-content:center;-->
+<!--            cursor:pointer;-->
+<!--            opacity:0;-->
+<!--            visibility:hidden;-->
+<!--            transition:opacity 0.2s,visibility 0.2s;-->
+<!--            position:absolute;-->
+<!--            top:50%;-->
+<!--            transform:translateY(-50%);-->
+<!--        }-->
+
+<!--        .message-group.sent:hover .retract-btn {-->
+<!--            opacity:1;-->
+<!--            visibility:visible;-->
+<!--        }-->
+
+<!--        .message-group.sent .retract-btn {-->
+<!--            left:-32px;-->
+<!--        }-->
+
+<!--        .image-modal-overlay {-->
+<!--            position:fixed;-->
+<!--            top:0;-->
+<!--            left:0;-->
+<!--            width:100%;-->
+<!--            height:100%;-->
+<!--            background-color:rgba(0,0,0,0.85);-->
+<!--            display:none;-->
+<!--            justify-content:center;-->
+<!--            align-items:center;-->
+<!--            z-index:1060;-->
+<!--            padding:20px;-->
+<!--        }-->
+
+<!--        .image-modal-content {-->
+<!--            max-width:90%;-->
+<!--            max-height:90%;-->
+<!--            object-fit:contain;-->
+<!--        }-->
+
+<!--        .close-modal-btn {-->
+<!--            position:absolute;-->
+<!--            top:20px;-->
+<!--            right:35px;-->
+<!--            color:#fff;-->
+<!--            font-size:40px;-->
+<!--            font-weight:bold;-->
+<!--            cursor:pointer;-->
+<!--            transition:color 0.3s;-->
+<!--        }-->
+
+<!--        .close-modal-btn:hover {-->
+<!--            color:#bbb;-->
+<!--        }-->
+
+<!--        @media (max-width:767.98px) {-->
+<!--            body {-->
+<!--                background-color:#fff;-->
+<!--            }-->
+<!--            main.container-fluid {-->
+<!--                padding:0 !important;-->
+<!--                margin:0 !important;-->
+<!--            }-->
+<!--            .chat-container {-->
+<!--                height:calc(100vh - 56px);-->
+<!--                margin:0 !important;-->
+<!--                border-radius:0;-->
+<!--                box-shadow:none;-->
+<!--                border:none;-->
+<!--            }-->
+<!--            .conversation-list {-->
+<!--                width:100%;-->
+<!--                transition:transform 0.3s ease-in-out;-->
+<!--                border-right:none;-->
+<!--            }-->
+<!--            .chat-area {-->
+<!--                position:absolute;-->
+<!--                top:0;-->
+<!--                left:0;-->
+<!--                width:100%;-->
+<!--                height:100%;-->
+<!--                transform:translateX(100%);-->
+<!--                transition:transform 0.3s ease-in-out;-->
+<!--                background-color:var(&#45;&#45;chat-bg-color);-->
+<!--            }-->
+<!--            .chat-container.chat-view-active .conversation-list {-->
+<!--                transform:translateX(-100%);-->
+<!--            }-->
+<!--            .chat-container.chat-view-active .chat-area {-->
+<!--                transform:translateX(0);-->
+<!--            }-->
+<!--            .chat-header .back-button {-->
+<!--                display:inline-block;-->
+<!--            }-->
+<!--            .message-group.sent .retract-btn {-->
+<!--                left:auto;-->
+<!--                right:100%;-->
+<!--                margin-right:8px;-->
+<!--            }-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--<div id="page-transition-overlay">-->
+<!--    <div class="transition-particles">-->
+<!--        <span class="particle"></span><span class="particle"></span>-->
+<!--        <span class="particle"></span><span class="particle"></span>-->
+<!--        <span class="particle"></span><span class="particle"></span>-->
+<!--        <span class="particle"></span><span class="particle"></span>-->
+<!--        <span class="particle"></span><span class="particle"></span>-->
+<!--        <span class="particle"></span><span class="particle"></span>-->
+<!--    </div>-->
+<!--    <div class="transition-content">-->
+<!--        <img th:src="@{/assets/images/logo-icon.png}" alt="Loading..." class="transition-logo"/>-->
+<!--        <p class="transition-text">Chuẩn bị bữa trưa tuyệt vời...</p>-->
+<!--    </div>-->
+<!--    <svg id="transition-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">-->
+<!--        <path id="transition-path" d="M 0 0 L 100 0 L 100 100 Q 50 100 0 100 L 0 0 Z" />-->
+<!--    </svg>-->
+<!--</div>-->
+<!--<header>-->
+<!--    <div th:replace="~{fragments/navbar :: navbar}"></div>-->
+<!--</header>-->
+<!--<main class="container-fluid mt-4">-->
+<!--    <div class="chat-container">-->
+<!--        <div class="conversation-list">-->
+<!--            <div class="conversation-list-header">-->
+<!--                <h5><i class="fas fa-comments me-2"></i>Cuộc trò chuyện</h5>-->
+<!--            </div>-->
+<!--            <div class="conversation-list-body" id="conversation-list-body">-->
+<!--                <p class="p-3 text-muted">Đang tải danh sách...</p>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="chat-area" id="chat-area">-->
+<!--            <div class="d-flex flex-column justify-content-center align-items-center h-100 text-muted">-->
+<!--                <i class="fa-solid fa-message fa-4x mb-3" style="color: #e0e0e0;"></i>-->
+<!--                <h5 style="color: #aaa; font-weight: 500;">Chọn một cuộc trò chuyện để bắt đầu</h5>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</main>-->
+<!--<div id="image-modal-overlay" class="image-modal-overlay">-->
+<!--    <span id="close-modal-btn" class="close-modal-btn">×</span>-->
+<!--    <img id="modal-image-content" class="image-modal-content">-->
+<!--</div>-->
+<!--<template id="chat-area-template">-->
+<!--    <div class="chat-header">-->
+<!--        <button type="button" class="btn btn-light me-2 back-button" id="back-to-list-btn">-->
+<!--            <i class="fas fa-arrow-left"></i>-->
+<!--        </button>-->
+<!--        <div class="avatar" id="chat-contact-avatar"></div>-->
+<!--        <h6 id="chat-contact-name"></h6>-->
+<!--    </div>-->
+<!--    <div class="chat-body" id="chat-messages-area"></div>-->
+<!--    <div class="chat-footer">-->
+<!--        <form id="message-form" class="chat-input-wrapper">-->
+<!--            <input type="file" id="image-input" class="d-none" accept="image/*">-->
+<!--            <button type="button" id="attach-button" class="btn btn-light"><i class="fas fa-paperclip"></i></button>-->
+<!--            <input type="text" id="message-input" class="form-control" placeholder="Nhập tin nhắn..." autocomplete="off">-->
+<!--            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i></button>-->
+<!--        </form>-->
+<!--    </div>-->
+<!--</template>-->
+<!--<div th:replace="~{fragments/footer :: footer}"></div>-->
+<!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>-->
+<!--<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>-->
+<!--<script th:inline="javascript">-->
+<!--    document.addEventListener('DOMContentLoaded', function() {-->
+<!--        const adminUser = /*[[${adminUser}]]*/ null;-->
+<!--        if (!adminUser) return;-->
+<!--        const chatContainer = document.querySelector('.chat-container');-->
+<!--        const conversationListBody = document.getElementById('conversation-list-body');-->
+<!--        const chatArea = document.getElementById('chat-area');-->
+<!--        const chatAreaTemplate = document.getElementById('chat-area-template');-->
+<!--        const imageModalOverlay = document.getElementById('image-modal-overlay');-->
+<!--        const modalImageContent = document.getElementById('modal-image-content');-->
+<!--        const closeModalBtn = document.getElementById('close-modal-btn');-->
+<!--        let stompClient = null;-->
+<!--        let selectedUser = null;-->
+
+<!--        const createAvatarColor = (username) => {-->
+<!--            const colors = ['#007bff', '#6610f2', '#6f42c1', '#d63384', '#dc3545', '#fd7e14', '#ffc107', '#198754', '#20c997', '#0dcaf0'];-->
+<!--            const charCodeSum = username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);-->
+<!--            return colors[charCodeSum % colors.length];-->
+<!--        };-->
+
+<!--        const connect = () => {-->
+<!--            const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws';-->
+<!--            stompClient = new StompJs.Client({-->
+<!--                brokerURL: wsUrl,-->
+<!--                reconnectDelay: 5000,-->
+<!--                heartbeatIncoming: 10000,-->
+<!--                heartbeatOutgoing: 10000-->
+<!--            });-->
+<!--            stompClient.onConnect = (frame) => {-->
+<!--                stompClient.subscribe('/user/' + adminUser.username + '/queue/messages', onMessageReceived);-->
+<!--                stompClient.subscribe('/user/' + adminUser.username + '/queue/notifications', onNotificationReceived);-->
+<!--                loadConversations();-->
+<!--            };-->
+<!--            stompClient.onStompError = (frame) => {-->
+<!--                console.error('Broker reported error: ' + frame.headers['message']);-->
+<!--                console.error('Additional details: ' + frame.body);-->
+<!--            };-->
+<!--            stompClient.activate();-->
+<!--        };-->
+
+<!--        const onNotificationReceived = (payload) => {-->
+<!--            console.log('[Admin Notification Received]', JSON.parse(payload.body));-->
+<!--            const notification = JSON.parse(payload.body);-->
+<!--            if (notification.recipientId === adminUser.id) {-->
+<!--                if (selectedUser && selectedUser.id === notification.senderId) {-->
+<!--                    return;-->
+<!--                }-->
+<!--                loadConversations();-->
+<!--                const userItem = document.querySelector(`.conversation-item[data-user-id='${notification.senderId}']`);-->
+<!--                if(userItem) {-->
+<!--                    conversationListBody.prepend(userItem);-->
+<!--                    let dot = userItem.querySelector('.notification-dot');-->
+<!--                    if (!dot) {-->
+<!--                        dot = document.createElement('span');-->
+<!--                        dot.className = 'notification-dot';-->
+<!--                        userItem.appendChild(dot);-->
+<!--                    }-->
+<!--                    dot.style.display = 'block';-->
+<!--                }-->
+<!--            }-->
+<!--        };-->
+
+<!--        const loadConversations = async () => {-->
+<!--            try {-->
+<!--                const response = await fetch('/chat/conversations');-->
+<!--                const users = await response.json();-->
+<!--                const activeUserId = selectedUser ? selectedUser.id : null;-->
+<!--                conversationListBody.innerHTML = '';-->
+<!--                users.forEach(user => {-->
+<!--                    const item = document.createElement('div');-->
+<!--                    item.className = 'conversation-item';-->
+<!--                    if (user.id === activeUserId) {-->
+<!--                        item.classList.add('active');-->
+<!--                    }-->
+<!--                    item.dataset.userId = user.id;-->
+<!--                    item.dataset.username = user.username;-->
+<!--                    const avatar = document.createElement('div');-->
+<!--                    avatar.className = 'avatar';-->
+<!--                    avatar.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${user.username}&background=${createAvatarColor(user.username).substring(1)}&color=fff&bold=true')`;-->
+<!--                    const name = document.createElement('h6');-->
+<!--                    name.className = 'mb-0';-->
+<!--                    name.textContent = user.username;-->
+<!--                    item.appendChild(avatar);-->
+<!--                    item.appendChild(name);-->
+<!--                    item.addEventListener('click', () => selectConversation(user));-->
+<!--                    conversationListBody.appendChild(item);-->
+<!--                });-->
+<!--            } catch (error) {-->
+<!--                console.error("Failed to load conversations:", error);-->
+<!--                conversationListBody.innerHTML = '<p class="p-3 text-danger">Lỗi tải danh sách.</p>';-->
+<!--            }-->
+<!--        };-->
+
+<!--        const selectConversation = (user) => {-->
+<!--            selectedUser = user;-->
+<!--            const userItem = document.querySelector(`.conversation-item[data-user-id='${user.id}']`);-->
+<!--            if(userItem) {-->
+<!--                const dot = userItem.querySelector('.notification-dot');-->
+<!--                if (dot) dot.style.display = 'none';-->
+<!--            }-->
+<!--            document.querySelectorAll('.conversation-item').forEach(item => {-->
+<!--                item.classList.toggle('active', item.dataset.userId == selectedUser.id);-->
+<!--            });-->
+<!--            chatContainer.classList.add('chat-view-active');-->
+<!--            loadChatHistory(user);-->
+<!--        };-->
+
+<!--        const loadChatHistory = async (user) => {-->
+<!--            chatArea.innerHTML = chatAreaTemplate.innerHTML;-->
+<!--            document.getElementById('chat-contact-name').textContent = user.username;-->
+<!--            const contactAvatarContainer = document.getElementById('chat-contact-avatar');-->
+<!--            contactAvatarContainer.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${user.username}&background=${createAvatarColor(user.username).substring(1)}&color=fff&bold=true')`;-->
+
+<!--            const messageInput = document.getElementById('message-input');-->
+<!--            const messageForm = document.getElementById('message-form');-->
+<!--            const attachButton = document.getElementById('attach-button');-->
+<!--            const imageInput = document.getElementById('image-input');-->
+<!--            const backButton = document.getElementById('back-to-list-btn');-->
+
+<!--            backButton.addEventListener('click', () => {-->
+<!--                chatContainer.classList.remove('chat-view-active');-->
+<!--                selectedUser = null;-->
+<!--                document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active'));-->
+<!--            });-->
+
+<!--            messageForm.addEventListener('submit', (e) => {-->
+<!--                e.preventDefault();-->
+<!--                const messageContent = messageInput.value.trim();-->
+<!--                if (messageContent) {-->
+<!--                    sendMessage('TEXT', messageContent, user);-->
+<!--                    messageInput.value = '';-->
+<!--                }-->
+<!--            });-->
+
+<!--            attachButton.addEventListener('click', () => imageInput.click());-->
+<!--            imageInput.addEventListener('change', (event) => uploadImage(event, user));-->
+
+<!--            const chatMessagesArea = document.getElementById('chat-messages-area');-->
+<!--            chatMessagesArea.addEventListener('click', handleChatAreaClick);-->
+
+<!--            const response = await fetch(`/chat/history/${user.id}`);-->
+<!--            const messages = await response.json();-->
+<!--            chatMessagesArea.innerHTML = '';-->
+<!--            messages.forEach((msg, index) => {-->
+<!--                const prevMsg = index > 0 ? messages[index - 1] : null;-->
+<!--                displayMessage(msg, chatMessagesArea, prevMsg);-->
+<!--            });-->
+<!--            scrollToBottom(chatMessagesArea, 'instant');-->
+<!--            messageInput.focus();-->
+<!--        };-->
+
+<!--        const handleChatAreaClick = (event) => {-->
+<!--            const retractButton = event.target.closest('.retract-btn');-->
+<!--            if (retractButton) {-->
+<!--                const messageId = retractButton.dataset.messageId;-->
+<!--                if (confirm('Bạn có chắc muốn gỡ tin nhắn này?')) {-->
+<!--                    fetch(`/chat/messages/${messageId}`, { method: 'DELETE' })-->
+<!--                        .catch(err => console.error("Error retracting message:", err));-->
+<!--                }-->
+<!--            }-->
+<!--        };-->
+
+<!--        const sendMessage = (type, content, recipientUser) => {-->
+<!--            if (content && stompClient && stompClient.active && recipientUser) {-->
+<!--                const chatMessage = {-->
+<!--                    senderId: adminUser.id,-->
+<!--                    senderUsername: adminUser.username,-->
+<!--                    recipientId: recipientUser.id,-->
+<!--                    recipientUsername: recipientUser.username,-->
+<!--                    content: content,-->
+<!--                    messageType: type-->
+<!--                };-->
+<!--                stompClient.publish({-->
+<!--                    destination: '/app/chat.sendMessage',-->
+<!--                    body: JSON.stringify(chatMessage)-->
+<!--                });-->
+<!--            }-->
+<!--        };-->
+
+<!--        const uploadImage = async (event, recipientUser) => {-->
+<!--            const file = event.target.files[0];-->
+<!--            if (!file) return;-->
+<!--            const formData = new FormData();-->
+<!--            formData.append('file', file);-->
+<!--            try {-->
+<!--                const response = await fetch('/upload/image/chat', {-->
+<!--                    method: 'POST',-->
+<!--                    body: formData-->
+<!--                });-->
+<!--                if (!response.ok) throw new Error('Upload failed');-->
+<!--                const result = await response.json();-->
+<!--                sendMessage('IMAGE', result.url, recipientUser);-->
+<!--            } catch (error) {-->
+<!--                console.error('Image upload error:', error);-->
+<!--                alert('Tải ảnh lên thất bại.');-->
+<!--            }-->
+<!--            event.target.value = '';-->
+<!--        };-->
+
+<!--        const onMessageReceived = (payload) => {-->
+<!--            const message = JSON.parse(payload.body);-->
+<!--            loadConversations().then(() => {-->
+<!--                const userItem = document.querySelector(`.conversation-item[data-user-id='${message.senderId}']`);-->
+<!--                if (userItem) {-->
+<!--                    conversationListBody.prepend(userItem);-->
+<!--                }-->
+<!--            });-->
+
+<!--            const existingMessageElement = document.getElementById('message-group-' + message.id);-->
+<!--            if (existingMessageElement) {-->
+<!--                updateMessage(message, existingMessageElement);-->
+<!--                return;-->
+<!--            }-->
+
+<!--            if (selectedUser && (message.senderId == selectedUser.id || message.recipientId == selectedUser.id)) {-->
+<!--                const chatMessagesArea = document.getElementById('chat-messages-area');-->
+<!--                const lastMessageElement = chatMessagesArea.lastElementChild;-->
+<!--                const prevMsg = lastMessageElement ? { senderId: lastMessageElement.dataset.senderId } : null;-->
+<!--                displayMessage(message, chatMessagesArea, prevMsg);-->
+<!--                scrollToBottom(chatMessagesArea, 'smooth');-->
+<!--            }-->
+<!--        };-->
+
+<!--        const updateMessage = (message, element) => {-->
+<!--            if (message.messageType === 'RETRACTED') {-->
+<!--                const bubble = element.querySelector('.message-bubble');-->
+<!--                bubble.textContent = message.content;-->
+<!--                bubble.className = 'message-bubble retracted';-->
+<!--                const retractBtn = element.querySelector('.retract-btn');-->
+<!--                if (retractBtn) retractBtn.remove();-->
+<!--            }-->
+<!--        };-->
+
+<!--        const displayMessage = (message, container, prevMessage) => {-->
+<!--            if (!container) return;-->
+<!--            const isSent = message.senderId === adminUser.id;-->
+<!--            const isGrouped = prevMessage && prevMessage.senderId === message.senderId;-->
+
+<!--            const messageGroup = document.createElement('div');-->
+<!--            messageGroup.id = `message-group-${message.id}`;-->
+<!--            messageGroup.className = `message-group ${isSent ? 'sent' : 'received'} ${isGrouped ? 'is-grouped' : ''}`;-->
+<!--            messageGroup.dataset.senderId = message.senderId;-->
+
+<!--            const avatar = document.createElement('div');-->
+<!--            avatar.className = 'avatar';-->
+<!--            const avatarOwnerName = isSent ? adminUser.username : selectedUser.username;-->
+<!--            avatar.style.backgroundImage = `url('https://ui-avatars.com/api/?name=${avatarOwnerName}&background=${createAvatarColor(avatarOwnerName).substring(1)}&color=fff&bold=true')`;-->
+
+<!--            const bubblesContainer = document.createElement('div');-->
+<!--            bubblesContainer.className = 'message-bubbles';-->
+
+<!--            const bubble = document.createElement('div');-->
+<!--            bubble.className = 'message-bubble';-->
+<!--            if (message.messageType === 'IMAGE') {-->
+<!--                bubble.classList.add('image-message');-->
+<!--                bubble.innerHTML = `<img src="${message.content}" alt="Ảnh đã gửi" class="chat-image-thumbnail">`;-->
+<!--            } else if (message.messageType === 'RETRACTED') {-->
+<!--                bubble.classList.add('retracted');-->
+<!--                bubble.textContent = message.content;-->
+<!--            } else {-->
+<!--                bubble.textContent = message.content;-->
+<!--            }-->
+<!--            bubblesContainer.appendChild(bubble);-->
+
+<!--            const time = document.createElement('div');-->
+<!--            time.className = 'message-time';-->
+<!--            time.textContent = new Date(message.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });-->
+<!--            bubblesContainer.appendChild(time);-->
+
+<!--            messageGroup.appendChild(avatar);-->
+<!--            messageGroup.appendChild(bubblesContainer);-->
+
+<!--            if (isSent && message.messageType !== 'RETRACTED') {-->
+<!--                const retractBtn = document.createElement('button');-->
+<!--                retractBtn.className = 'retract-btn';-->
+<!--                retractBtn.title = 'Gỡ tin nhắn';-->
+<!--                retractBtn.dataset.messageId = message.id;-->
+<!--                retractBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';-->
+<!--                messageGroup.appendChild(retractBtn);-->
+<!--            }-->
+
+<!--            container.appendChild(messageGroup);-->
+<!--        };-->
+
+<!--        const scrollToBottom = (container, behavior = 'smooth') => {-->
+<!--            if (container) {-->
+<!--                container.scrollTo({ top: container.scrollHeight, behavior: behavior });-->
+<!--            }-->
+<!--        };-->
+
+<!--        const openImageModal = (src) => {-->
+<!--            modalImageContent.src = src;-->
+<!--            imageModalOverlay.style.display = 'flex';-->
+<!--        };-->
+
+<!--        const closeImageModal = () => {-->
+<!--            imageModalOverlay.style.display = 'none';-->
+<!--            modalImageContent.src = '';-->
+<!--        };-->
+
+<!--        chatArea.addEventListener('click', (event) => {-->
+<!--            if (event.target && event.target.classList.contains('chat-image-thumbnail')) {-->
+<!--                openImageModal(event.target.src);-->
+<!--            }-->
+<!--        });-->
+
+<!--        closeModalBtn.addEventListener('click', closeImageModal);-->
+<!--        imageModalOverlay.addEventListener('click', (event) => {-->
+<!--            if (event.target === imageModalOverlay) {-->
+<!--                closeImageModal();-->
+<!--            }-->
+<!--        });-->
+
+<!--        connect();-->
+<!--    });-->
+<!--</script>-->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>-->
+<!--<script src="https://unpkg.com/gsap@3/dist/SplitText.min.js" defer></script>-->
+<!--<script th:src="@{/assets/js/transition.js}" defer></script>-->
+<!--</body>-->
+<!--</html>-->
