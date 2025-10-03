@@ -1,146 +1,146 @@
-//package com.example.lunchapp.config;
-//
-//import com.example.lunchapp.repository.RoleRepository;
-//import com.example.lunchapp.service.CategoryService;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.fasterxml.jackson.databind.SerializationFeature;
-//import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-//import org.springframework.beans.factory.InitializingBean;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.context.annotation.*;
-//import org.springframework.core.env.Environment;
-//import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-//import org.springframework.jdbc.datasource.DriverManagerDataSource;
-//import org.springframework.orm.jpa.JpaTransactionManager;
-//import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-//import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-//import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-//import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-//import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.transaction.PlatformTransactionManager;
-//import org.springframework.transaction.annotation.EnableTransactionManagement;
-//
-//import javax.sql.DataSource;
-//import java.util.Properties;
-//
-//@Configuration
-//@ComponentScan(basePackages = {
-//        "com.example.lunchapp.service",
-//        "com.example.lunchapp.repository",
-//        "com.example.lunchapp.controller"
-//})
-//@EnableJpaRepositories(basePackages = "com.example.lunchapp.repository")
-//@EnableTransactionManagement
-//@EnableAspectJAutoProxy
-//@EnableWebSecurity
-//@PropertySources({
-//        @PropertySource("classpath:database.properties"),
-//        @PropertySource("classpath:application.properties")
-//})
-//public class AppConfig extends WebSecurityConfigurerAdapter {
-//
-//    @Autowired
-//    private Environment env;
-//
-//    @Override
-//    protected void configure(HttpSecurity http) throws Exception {
-//        http
-//                .authorizeRequests()
-//                .antMatchers("/**").permitAll()
-//                .and()
-//                .csrf().disable();
-//    }
-//
-//    @Bean
-//    public ObjectMapper objectMapper() {
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        objectMapper.registerModule(new JavaTimeModule());
-//        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-//        return objectMapper;
-//    }
-//
-//    @Bean
-//    public DataSource dataSource() {
-//        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-//
-//        String jdbcUrl;
-//        String username;
-//        String password;
-//
-//        String railwayHost = System.getenv("MYSQLHOST");
-//        String railwayPort = System.getenv("MYSQLPORT");
-//        String railwayDatabase = System.getenv("MYSQL_DATABASE");
-//        String railwayUser = System.getenv("MYSQLUSER");
-//        String railwayPassword = System.getenv("MYSQLPASSWORD");
-//
-//        if (railwayHost != null && railwayPort != null && railwayDatabase != null && railwayUser != null && railwayPassword != null) {
-//            jdbcUrl = String.format("jdbc:mysql://%s:%s/%s?serverTimezone=UTC&useSSL=false", railwayHost, railwayPort, railwayDatabase);
-//            username = railwayUser;
-//            password = railwayPassword;
-//        } else {
-//            jdbcUrl = env.getProperty("db.url");
-//            username = env.getProperty("db.username");
-//            password = env.getProperty("db.password");
-//        }
-//
-//        dataSource.setDriverClassName(env.getProperty("db.driver"));
-//        dataSource.setUrl(jdbcUrl);
-//        dataSource.setUsername(username);
-//        dataSource.setPassword(password);
-//        return dataSource;
-//    }
-//
-//    @Bean
-//    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
-//        LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
-//        emf.setDataSource(dataSource());
-//        emf.setPackagesToScan("com.example.lunchapp.model.entity");
-//
-//        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-//        emf.setJpaVendorAdapter(vendorAdapter);
-//        emf.setJpaProperties(additionalProperties());
-//        return emf;
-//    }
-//
-//    @Bean
-//    public PlatformTransactionManager transactionManager() {
-//        JpaTransactionManager transactionManager = new JpaTransactionManager();
-//        transactionManager.setEntityManagerFactory(entityManagerFactory().getObject());
-//        return transactionManager;
-//    }
-//
-//    @Bean
-//    public PasswordEncoder passwordEncoder() {
-//        return new BCryptPasswordEncoder();
-//    }
-//
-//    private Properties additionalProperties() {
-//        Properties properties = new Properties();
-//
-//        String hbm2ddl = System.getenv("HIBERNATE_HBM2DDL_AUTO") != null
-//                ? System.getenv("HIBERNATE_HBM2DDL_AUTO")
-//                : env.getProperty("hibernate.hbm2ddl.auto");
-//
-//        properties.setProperty("hibernate.hbm2ddl.auto", hbm2ddl);
-//        properties.setProperty("hibernate.dialect", env.getProperty("hibernate.dialect"));
-//        properties.setProperty("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
-//        properties.setProperty("hibernate.format_sql", env.getProperty("hibernate.format_sql"));
-//
-//        return properties;
-//    }
-//
-//    @Bean
-//    public InitializingBean initializeDefaultData(CategoryService categoryService, RoleRepository roleRepository) {
-//        return () -> {
-//            categoryService.createDefaultCategoriesIfNotExist();
-//            if (roleRepository.findByName("ROLE_ADMIN").isEmpty()) {
-//                roleRepository.save(new com.example.lunchapp.model.entity.Role("ROLE_ADMIN"));
-//            }
-//            if (roleRepository.findByName("ROLE_USER").isEmpty()) {
-//                roleRepository.save(new com.example.lunchapp.model.entity.Role("ROLE_USER"));
-//            }
-//        };
-//    }
-//}
+package com.example.lunchapp.config;
+
+import com.example.lunchapp.repository.RoleRepository;
+import com.example.lunchapp.service.CategoryService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.*;
+import org.springframework.core.env.Environment;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import javax.sql.DataSource;
+import java.util.Properties;
+
+@Configuration
+@ComponentScan(basePackages = {
+        "com.example.lunchapp.service",
+        "com.example.lunchapp.repository",
+        "com.example.lunchapp.controller"
+})
+@EnableJpaRepositories(basePackages = "com.example.lunchapp.repository")
+@EnableTransactionManagement
+@EnableAspectJAutoProxy
+@EnableWebSecurity
+@PropertySources({
+        @PropertySource("classpath:database.properties"),
+        @PropertySource("classpath:application.properties")
+})
+public class AppConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private Environment env;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .authorizeRequests()
+                .antMatchers("/**").permitAll()
+                .and()
+                .csrf().disable();
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return objectMapper;
+    }
+
+    @Bean
+    public DataSource dataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+
+        String jdbcUrl;
+        String username;
+        String password;
+
+        String railwayHost = System.getenv("MYSQLHOST");
+        String railwayPort = System.getenv("MYSQLPORT");
+        String railwayDatabase = System.getenv("MYSQL_DATABASE");
+        String railwayUser = System.getenv("MYSQLUSER");
+        String railwayPassword = System.getenv("MYSQLPASSWORD");
+
+        if (railwayHost != null && railwayPort != null && railwayDatabase != null && railwayUser != null && railwayPassword != null) {
+            jdbcUrl = String.format("jdbc:mysql://%s:%s/%s?serverTimezone=UTC&useSSL=false", railwayHost, railwayPort, railwayDatabase);
+            username = railwayUser;
+            password = railwayPassword;
+        } else {
+            jdbcUrl = env.getProperty("db.url");
+            username = env.getProperty("db.username");
+            password = env.getProperty("db.password");
+        }
+
+        dataSource.setDriverClassName(env.getProperty("db.driver"));
+        dataSource.setUrl(jdbcUrl);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        return dataSource;
+    }
+
+    @Bean
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+        LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
+        emf.setDataSource(dataSource());
+        emf.setPackagesToScan("com.example.lunchapp.model.entity");
+
+        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        emf.setJpaVendorAdapter(vendorAdapter);
+        emf.setJpaProperties(additionalProperties());
+        return emf;
+    }
+
+    @Bean
+    public PlatformTransactionManager transactionManager() {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(entityManagerFactory().getObject());
+        return transactionManager;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    private Properties additionalProperties() {
+        Properties properties = new Properties();
+
+        String hbm2ddl = System.getenv("HIBERNATE_HBM2DDL_AUTO") != null
+                ? System.getenv("HIBERNATE_HBM2DDL_AUTO")
+                : env.getProperty("hibernate.hbm2ddl.auto");
+
+        properties.setProperty("hibernate.hbm2ddl.auto", hbm2ddl);
+        properties.setProperty("hibernate.dialect", env.getProperty("hibernate.dialect"));
+        properties.setProperty("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
+        properties.setProperty("hibernate.format_sql", env.getProperty("hibernate.format_sql"));
+
+        return properties;
+    }
+
+    @Bean
+    public InitializingBean initializeDefaultData(CategoryService categoryService, RoleRepository roleRepository) {
+        return () -> {
+            categoryService.createDefaultCategoriesIfNotExist();
+            if (roleRepository.findByName("ROLE_ADMIN").isEmpty()) {
+                roleRepository.save(new com.example.lunchapp.model.entity.Role("ROLE_ADMIN"));
+            }
+            if (roleRepository.findByName("ROLE_USER").isEmpty()) {
+                roleRepository.save(new com.example.lunchapp.model.entity.Role("ROLE_USER"));
+            }
+        };
+    }
+}
