@@ -46,7 +46,8 @@ public class AiSuggestionServiceImpl implements AiChatService {
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
 
     @Autowired
-    public AiSuggestionServiceImpl(FoodItemService foodItemService, OrderService orderService, ObjectMapper objectMapper) {
+    public AiSuggestionServiceImpl(FoodItemService foodItemService, OrderService orderService,
+            ObjectMapper objectMapper) {
         this.foodItemService = foodItemService;
         this.orderService = orderService; // Injecct OrderService
         this.objectMapper = objectMapper;
@@ -73,8 +74,10 @@ public class AiSuggestionServiceImpl implements AiChatService {
         String systemMessage = buildSystemPrompt(menuJson, favoriteFoods);
 
         // 3. Gửi yêu cầu đến Gemini AI
-        ObjectNode requestBodyJson = buildGeminiRequestBody(systemMessage, chatRequest.getHistory(), chatRequest.getNewMessage());
-        RequestBody body = RequestBody.create(requestBodyJson.toString(), MediaType.get("application/json; charset=utf-8"));
+        ObjectNode requestBodyJson = buildGeminiRequestBody(systemMessage, chatRequest.getHistory(),
+                chatRequest.getNewMessage());
+        RequestBody body = RequestBody.create(requestBodyJson.toString(),
+                MediaType.get("application/json; charset=utf-8"));
 
         String url = GEMINI_API_URL + model + ":generateContent?key=" + apiKey;
         Request request = new Request.Builder()
@@ -93,7 +96,8 @@ public class AiSuggestionServiceImpl implements AiChatService {
 
             // 4. Xử lý phản hồi JSON từ Gemini
             JsonNode root = objectMapper.readTree(responseBody);
-            String aiResponseContent = root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
+            String aiResponseContent = root.path("candidates").get(0).path("content").path("parts").get(0).path("text")
+                    .asText();
 
             String finalCleanJson = cleanupAiResponse(aiResponseContent);
             logger.info("Final clean JSON content: {}", finalCleanJson);
@@ -205,13 +209,13 @@ public class AiSuggestionServiceImpl implements AiChatService {
                 + "}";
     }
 
-
     private String convertFoodItemsToJson(List<FoodItem> items) throws JsonProcessingException {
         if (items == null || items.isEmpty()) {
             return "[]";
         }
         List<SimpleFoodItem> simpleItems = items.stream()
-                .map(item -> new SimpleFoodItem(item.getId(), item.getName(), item.getPrice().intValue(), item.getCategory() != null ? item.getCategory().getName() : "Khác"))
+                .map(item -> new SimpleFoodItem(item.getId(), item.getName(), item.getPrice().intValue(),
+                        item.getCategory() != null ? item.getCategory().getName() : "Khác"))
                 .collect(Collectors.toList());
         return objectMapper.writeValueAsString(simpleItems);
     }
@@ -255,6 +259,7 @@ public class AiSuggestionServiceImpl implements AiChatService {
         public String name;
         public int price;
         public String category;
+
         public SimpleFoodItem(Long id, String name, int price, String category) {
             this.id = id;
             this.name = name;

@@ -29,7 +29,8 @@ public class UserServiceImpl implements UserService {
     private final OrderRepository orderRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, OrderRepository orderRepository) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder, OrderRepository orderRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -50,7 +51,8 @@ public class UserServiceImpl implements UserService {
         user.setUsername(registrationDto.getUsername());
         user.setDepartment(registrationDto.getDepartment());
         user.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
-        user.setBalance(registrationDto.getInitialBalance() != null ? registrationDto.getInitialBalance() : BigDecimal.ZERO);
+        user.setBalance(
+                registrationDto.getInitialBalance() != null ? registrationDto.getInitialBalance() : BigDecimal.ZERO);
         user.setEnabled(true);
         user.setCreatedAt(LocalDateTime.now());
 
@@ -71,7 +73,8 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Không tìm thấy người dùng với ID: " + userId);
         }
         if (orderRepository.existsByUser_Id(userId)) {
-            throw new RuntimeException("Không thể xóa người dùng đã có lịch sử đặt hàng. Hãy xem xét việc vô hiệu hóa tài khoản.");
+            throw new RuntimeException(
+                    "Không thể xóa người dùng đã có lịch sử đặt hàng. Hãy xem xét việc vô hiệu hóa tài khoản.");
         }
         userRepository.deleteById(userId);
     }
@@ -128,7 +131,8 @@ public class UserServiceImpl implements UserService {
         if (updatedUserPartialInfo.getUsername() != null && !updatedUserPartialInfo.getUsername().isEmpty() &&
                 !updatedUserPartialInfo.getUsername().equals(userToUpdate.getUsername())) {
             if (userRepository.existsByUsername(updatedUserPartialInfo.getUsername())) {
-                throw new RuntimeException("Error: Username '" + updatedUserPartialInfo.getUsername() + "' is already taken!");
+                throw new RuntimeException(
+                        "Error: Username '" + updatedUserPartialInfo.getUsername() + "' is already taken!");
             }
             userToUpdate.setUsername(updatedUserPartialInfo.getUsername());
         }

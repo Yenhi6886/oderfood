@@ -6,9 +6,14 @@ import java.util.Optional;
 
 public interface CategoryService {
     List<Category> getAllCategories();
+
     Optional<Category> findById(Long id);
+
     Category saveCategory(Category category);
+
     void deleteCategory(Long id);
+
     Optional<Category> findByName(String name);
+
     void createDefaultCategoriesIfNotExist();
 }

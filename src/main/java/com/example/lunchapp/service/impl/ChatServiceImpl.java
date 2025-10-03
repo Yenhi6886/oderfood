@@ -34,7 +34,8 @@ public class ChatServiceImpl implements ChatService {
         User sender = userRepository.findById(chatMessageDto.getSenderId())
                 .orElseThrow(() -> new RuntimeException("Sender not found with id: " + chatMessageDto.getSenderId()));
         User recipient = userRepository.findById(chatMessageDto.getRecipientId())
-                .orElseThrow(() -> new RuntimeException("Recipient not found with id: " + chatMessageDto.getRecipientId()));
+                .orElseThrow(
+                        () -> new RuntimeException("Recipient not found with id: " + chatMessageDto.getRecipientId()));
 
         ChatMessage chatMessage = ChatMessage.builder()
                 .sender(sender)
@@ -81,10 +82,10 @@ public class ChatServiceImpl implements ChatService {
         List<User> users = userRepository.findUsersWithChatHistoryWithAdmin(adminId);
         users.sort(Comparator.comparing(
                 (User u) -> {
-                    List<ChatMessage> lastMessages = chatMessageRepository.findLastMessageBetweenUsers(adminId, u.getId());
+                    List<ChatMessage> lastMessages = chatMessageRepository.findLastMessageBetweenUsers(adminId,
+                            u.getId());
                     return lastMessages.isEmpty() ? LocalDateTime.MIN : lastMessages.get(0).getTimestamp();
-                }
-        ).reversed());
+                }).reversed());
         return users;
     }
 
